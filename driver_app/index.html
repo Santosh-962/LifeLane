@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#dc2626">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>LifeLane – Driver Emergency Portal</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/svg+xml" href="icon.svg">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- App Container -->
+  <div class="app-viewport">
+
+    <!-- Top Navigation Bar -->
+    <header class="app-header">
+      <div class="brand">
+        <span class="brand-icon">🚦</span>
+        <span class="brand-name">LifeLane</span>
+      </div>
+      <div class="header-controls">
+        <button id="voiceToggleBtn" class="pill-btn voice-btn" title="Toggle Voice Prompts">
+          🔊 Voice: <span id="voiceStatusText">ON</span>
+        </button>
+        <div id="connectionBadge" class="connection-badge online">Online</div>
+      </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="app-body">
+
+      <!-- ==================== SCREEN 1: LOGIN ==================== -->
+      <section id="loginScreen" class="screen-view active">
+        <div class="card login-card">
+          <div class="hero-icon">🚑</div>
+          <h1 class="screen-title">Vehicle Login</h1>
+          <p class="screen-subtext">Enter your vehicle credentials to enable priority signal preemption.</p>
+
+          <form id="loginForm" onsubmit="handleLogin(event)">
+            <div class="form-group">
+              <label for="vehicleIdInput">Vehicle ID / Number Plate</label>
+              <input type="text" id="vehicleIdInput" placeholder="e.g. AMB-108 or DL-01-AM-1080" required autocomplete="off">
+              <span class="input-hint">Official fleet ID or private registration</span>
+            </div>
+
+            <div class="form-group">
+              <label for="vehicleTypeSelect">Vehicle Category</label>
+              <select id="vehicleTypeSelect" required onchange="handleVehicleTypeChange()">
+                <option value="ambulance">Ambulance (Official Fleet)</option>
+                <option value="fire">Fire Brigade (Official Fleet)</option>
+                <option value="police">Police Escort (Official Fleet)</option>
+                <option value="private_medical">Private Vehicle (Medical Emergency)</option>
+                <option value="private_fire">Private Vehicle (Fire Emergency)</option>
+              </select>
+            </div>
+
+            <div class="quick-presets">
+              <span class="preset-label">Demo Presets:</span>
+              <button type="button" class="preset-chip" onclick="setPreset('AMB-108', 'ambulance')">Ambulance #108</button>
+              <button type="button" class="preset-chip" onclick="setPreset('FIRE-101', 'fire')">Fire Engine #101</button>
+              <button type="button" class="preset-chip" onclick="setPreset('PVT-9921', 'private_medical')">Private Medical</button>
+            </div>
+
+            <button type="submit" class="primary-btn">Connect Vehicle</button>
+          </form>
+        </div>
+      </section>
+
+      <!-- ==================== SCREEN 2: DRIVER COCKPIT (IDLE) ==================== -->
+      <section id="cockpitScreen" class="screen-view">
+        <!-- Vehicle Status Strip -->
+        <div class="vehicle-strip">
+          <div class="strip-left">
+            <span id="cockpitVehicleIcon" class="vehicle-icon">🚑</span>
+            <div>
+              <div id="cockpitVehicleId" class="strip-id">AMB-108</div>
+              <div id="cockpitVehicleType" class="strip-type">Ambulance • Official Fleet</div>
+            </div>
+          </div>
+          <button class="text-btn" onclick="showScreen('loginScreen')">Switch</button>
+        </div>
+
+        <!-- Demo Mode & Simulation Controls -->
+        <div class="control-card">
+          <div class="toggle-row">
+            <span class="toggle-label">
+              <strong>Demo Mode (Simulated Corridor GPS)</strong>
+              <small>Simulates 50 km/h run towards Central Junction</small>
+            </span>
+            <label class="switch">
+              <input type="checkbox" id="demoGpsToggle" checked>
+              <span class="slider round"></span>
+            </label>
+          </div>
+        </div>
+
+        <!-- The Giant Emergency Button -->
+        <div class="emergency-action-container">
+          <button id="emergencyBtn" class="giant-emergency-btn" onclick="openEmergencyModal()">
+            <div class="btn-ripple"></div>
+            <div class="btn-inner">
+              <span class="siren-icon">🚨</span>
+              <span class="btn-title">EMERGENCY</span>
+              <span class="btn-subtitle">TAP TO CLEAR SIGNALS</span>
+            </div>
+          </button>
+        </div>
+
+        <!-- Readiness Footer -->
+        <div class="readiness-banner">
+          <span class="status-dot green"></span>
+          <span>LifeLane Controller Ready • Tap when starting response run</span>
+        </div>
+      </section>
+
+      <!-- ==================== SCREEN 3: ACTIVE EMERGENCY CORRIDOR ==================== -->
+      <section id="activeCorridorScreen" class="screen-view">
+        <!-- Live Priority Status Header -->
+        <div class="corridor-banner">
+          <div class="pulse-indicator"></div>
+          <div>
+            <h2 class="banner-title">PRIORITY CORRIDOR ACTIVE</h2>
+            <div id="verifyMessageText" class="banner-subtitle">Request Verified • Signals Preempting</div>
+          </div>
+        </div>
+
+        <!-- Main Real-Time HUD Card -->
+        <div class="card hud-card">
+          <div class="hud-target-label">NEXT JUNCTION CLEARANCE</div>
+          <div id="nextJunctionName" class="hud-junction-name">Central Crossing (Junction C)</div>
+
+          <div class="hud-timer-container">
+            <div class="timer-dial">
+              <span id="etaSecondsDisplay" class="hud-eta-number">45</span>
+              <span class="hud-eta-unit">SEC</span>
+            </div>
+            <div class="hud-signal-status">
+              <div class="signal-mini-graphic">
+                <span class="mini-bulb red"></span>
+                <span class="mini-bulb yellow"></span>
+                <span class="mini-bulb green active"></span>
+              </div>
+              <div class="signal-text-block">
+                <strong id="approachRoadText">Approach: SOUTH ROAD</strong>
+                <span id="signalStateText" class="green-text">SIGNAL: GREEN WAVE ACTIVE</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Progress bar towards junction -->
+          <div class="corridor-progress-bar">
+            <div id="corridorProgressFill" class="progress-fill" style="width: 25%;"></div>
+          </div>
+          <div class="progress-meta">
+            <span id="distRemainingText">Distance: 320m</span>
+            <span id="liveSpeedText">Speed: 50 km/h</span>
+          </div>
+        </div>
+
+        <!-- Live GPS & Dispatch Card -->
+        <div class="card telemetry-card">
+          <div class="telem-row">
+            <span class="telem-label">Destination</span>
+            <span id="corridorDestinationText" class="telem-val">City General Hospital</span>
+          </div>
+          <div class="telem-row">
+            <span class="telem-label">GPS Stream</span>
+            <span id="gpsStreamStatus" class="telem-val green-text">Updating every 3s (Live)</span>
+          </div>
+          <div class="telem-row">
+            <span class="telem-label">Corridor Plan</span>
+            <span id="corridorPlanInfo" class="telem-val">Full Preemption (45s window)</span>
+          </div>
+        </div>
+
+        <!-- Emergency Cancel Button -->
+        <div class="cancel-action-container">
+          <button id="cancelCorridorBtn" class="cancel-btn" onclick="cancelActiveCorridor()">
+            🛑 CANCEL EMERGENCY CORRIDOR
+            <small>Restores normal signal cycle immediately</small>
+          </button>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- ==================== MODAL: EMERGENCY DISPATCH FORM ==================== -->
+    <div id="emergencyModal" class="modal-backdrop">
+      <div class="modal-dialog">
+        <div class="modal-header">
+          <h2 class="modal-title">🚨 Raise Emergency Priority</h2>
+          <button class="close-btn" onclick="closeEmergencyModal()">&times;</button>
+        </div>
+
+        <form id="emergencyDispatchForm" onsubmit="submitEmergencyRequest(event)">
+          <!-- Emergency Category -->
+          <div class="form-group">
+            <label>Emergency Type</label>
+            <div class="radio-group">
+              <label class="radio-card">
+                <input type="radio" name="emergencyKind" value="medical" checked>
+                <span class="radio-body">🏥 Medical</span>
+              </label>
+              <label class="radio-card">
+                <input type="radio" name="emergencyKind" value="fire">
+                <span class="radio-body">🔥 Fire Rescue</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Destination -->
+          <div class="form-group">
+            <label for="destinationSelect">Destination Hospital / Station</label>
+            <select id="destinationSelect" required>
+              <option value="City General Hospital">City General Hospital (North Corridor)</option>
+              <option value="Metro Trauma Center">Metro Trauma Center (South Corridor)</option>
+              <option value="Central Fire Station">Central Fire Station (East Corridor)</option>
+              <option value="North Sector Fire Unit">North Sector Fire Unit</option>
+            </select>
+          </div>
+
+          <!-- Conditional Field for Private Vehicles -->
+          <div id="privateVerificationGroup" class="form-group private-only-box" style="display: none;">
+            <label for="referenceIdInput">112 Incident ID or Hospital Name *</label>
+            <input type="text" id="referenceIdInput" placeholder="e.g. 112-DEL-2024-8891 or City General Hospital">
+            <span class="input-hint warning-hint">Mandatory for private vehicles to prevent unauthorized signal preemption.</span>
+          </div>
+
+          <div class="modal-actions">
+            <button type="button" class="secondary-btn" onclick="closeEmergencyModal()">Cancel</button>
+            <button type="submit" id="dispatchConfirmBtn" class="confirm-btn">
+              ⚡ CLEAR CORRIDOR NOW
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

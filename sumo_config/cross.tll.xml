@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- LifeLane – Fixed-timer Traffic Light Logic for junction C
+     Cycle: 40s NS Green -> 3s Yellow -> 2s All-Red -> 40s EW Green -> 3s Yellow -> 2s All-Red (Total cycle: 90s) -->
+<tlLogics version="1.16" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <tlLogic id="C" type="static" programID="baseline_fixed" offset="0">
+        <!-- Phase 0: North-South Green (40s) -->
+        <phase duration="40" state="GGggrrrrGGggrrrr"/>
+        <!-- Phase 1: North-South Yellow (3s) -->
+        <phase duration="3"  state="yyyyrrrryyyyrrrr"/>
+        <!-- Phase 2: All-Red Safety Clearance (2s) -->
+        <phase duration="2"  state="rrrrrrrrrrrrrrrr"/>
+        <!-- Phase 3: East-West Green (40s) -->
+        <phase duration="40" state="rrrrGGggrrrrGGgg"/>
+        <!-- Phase 4: East-West Yellow (3s) -->
+        <phase duration="3"  state="rrrryyyyrrrryyyy"/>
+        <!-- Phase 5: All-Red Safety Clearance (2s) -->
+        <phase duration="2"  state="rrrrrrrrrrrrrrrr"/>
+    </tlLogic>
+</tlLogics>

@@ -1,0 +1,94 @@
+# LifeLane – Zone Counter Configuration
+# ======================================
+# Edit the values below to match your camera / video setup.
+# Run `python zone_counter.py --pick-zones` to draw zones interactively.
+
+# ── Video source ─────────────────────────────────────────────────────────────
+# Path to an MP4/AVI file, or 0 for the default webcam.
+video_source: "traffic.mp4"
+
+# ── Output paths ─────────────────────────────────────────────────────────────
+output_video: "output.mp4"
+output_jsonl: "counts.jsonl"
+
+# ── YOLO model ───────────────────────────────────────────────────────────────
+# Any ultralytics model name works.  It is downloaded automatically on first
+# run.  Use "yolov8s.pt" or "yolov8m.pt" for better accuracy at the cost of
+# speed.
+model: "yolov8n.pt"
+confidence: 0.30
+
+# ── Tracker ──────────────────────────────────────────────────────────────────
+# ByteTrack is the default.  "botsort.yaml" is also available.
+tracker: "bytetrack.yaml"
+
+# ── Calibration ──────────────────────────────────────────────────────────────
+# How many pixels in the image correspond to 1 metre on the road.
+# Measure a known distance (lane width ≈ 3.5 m) to calibrate.
+pixels_per_metre: 15.0
+
+# Speed below which a vehicle is considered "waiting / queued" (km/h).
+speed_threshold_kmh: 5.0
+
+# Metrics are computed and logged every N seconds.
+report_interval_sec: 2.0
+
+# ── FastAPI server ───────────────────────────────────────────────────────────
+api_port: 8001
+
+# ── COCO class-ID → label mapping ───────────────────────────────────────────
+# Standard COCO IDs for vehicles.  If you train a custom model that can
+# detect auto-rickshaws, add its class ID here (e.g. 80: "auto_rickshaw").
+class_map:
+  2: "car"
+  3: "motorcycle"
+  5: "bus"
+  7: "truck"
+  # 80: "auto_rickshaw"       # ← uncomment for a custom-trained model
+
+# ── PCU (Passenger Car Unit) weights ─────────────────────────────────────────
+# Used for the "weighted count" metric.
+weights:
+  motorcycle: 0.5
+  car: 1.0
+  auto_rickshaw: 0.75
+  bus: 2.5
+  truck: 2.5
+
+# ── Polygon zones (up to 4) ─────────────────────────────────────────────────
+# Each zone is a list of [x, y] vertices in pixel coordinates.
+# Colors are in BGR format.
+# TIP: Run `python zone_counter.py --pick-zones` to draw these interactively
+#      on the first frame of your video.  The zones will be saved back here.
+zones:
+  - name: "North"
+    color: [0, 255, 0]
+    polygon:
+      - [200, 50]
+      - [400, 50]
+      - [380, 250]
+      - [220, 250]
+
+  - name: "South"
+    color: [0, 0, 255]
+    polygon:
+      - [200, 350]
+      - [400, 350]
+      - [380, 550]
+      - [220, 550]
+
+  - name: "East"
+    color: [255, 0, 0]
+    polygon:
+      - [450, 150]
+      - [630, 150]
+      - [630, 350]
+      - [450, 350]
+
+  - name: "West"
+    color: [0, 255, 255]
+    polygon:
+      - [10, 150]
+      - [180, 150]
+      - [180, 350]
+      - [10, 350]

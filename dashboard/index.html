@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LifeLane – Traffic Police Command Center</title>
+  
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" 
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+  
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="dashboard-container">
+    
+    <!-- Top Command Bar -->
+    <header class="command-header">
+      <div class="header-left">
+        <span class="police-badge-icon">🛡️</span>
+        <div>
+          <h1 class="header-title">LifeLane Traffic Police Command Console</h1>
+          <p class="header-subtitle">Real-Time Smart Signal Preemption & Corridor Management</p>
+        </div>
+      </div>
+      
+      <div class="header-right">
+        <div id="wsStatusBadge" class="status-pill connected">
+          <span class="pulsing-dot"></span>
+          <span id="wsStatusText">WebSocket: LIVE</span>
+        </div>
+        <div class="officer-badge">
+          <span>👮 Officer: <strong>TP-INSPECTOR-12</strong></span>
+        </div>
+        <button class="danger-btn" onclick="confirmMasterOverride()">
+          ⚠️ RESET / CANCEL ALL CORRIDORS
+        </button>
+      </div>
+    </header>
+
+    <!-- KPI Metric Cards Row -->
+    <section class="kpi-row">
+      <div class="kpi-card">
+        <div class="kpi-icon-wrap ambulance">🚑</div>
+        <div class="kpi-content">
+          <span class="kpi-label">Ambulance Time Saved</span>
+          <div class="kpi-value-row">
+            <span id="kpiAmbSaved" class="kpi-value green">47.0 s</span>
+            <span class="kpi-badge green">-72.3% transit delay</span>
+          </div>
+          <span class="kpi-subtext">Avg 18s vs 65s on fixed cycle</span>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon-wrap wait">⏱️</div>
+        <div class="kpi-content">
+          <span class="kpi-label">Avg Waiting Time Saved</span>
+          <div class="kpi-value-row">
+            <span id="kpiWaitSaved" class="kpi-value blue">-31.8%</span>
+            <span class="kpi-badge blue">Adaptive Flow</span>
+          </div>
+          <span class="kpi-subtext">From queue-weighted proportional green</span>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon-wrap cross">🔄</div>
+        <div class="kpi-content">
+          <span class="kpi-label">Cross-Street Delay Added</span>
+          <div class="kpi-value-row">
+            <span id="kpiCrossDelay" class="kpi-value yellow">+1.8 s</span>
+            <span class="kpi-badge yellow">Flushed in 25s</span>
+          </div>
+          <span class="kpi-subtext">Post-clearance flush dissipates queues</span>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon-wrap count">🚨</div>
+        <div class="kpi-content">
+          <span class="kpi-label">Emergencies Handled</span>
+          <div class="kpi-value-row">
+            <span id="kpiEmergenciesCount" class="kpi-value white">0</span>
+            <span id="kpiActiveBadge" class="kpi-badge red">0 Active</span>
+          </div>
+          <span class="kpi-subtext">Verified 112 & Fleet Dispatches</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Main Workspace (Map + Active Corridors) -->
+    <section class="workspace-grid">
+      
+      <!-- Left: Interactive Map -->
+      <div class="panel map-panel">
+        <div class="panel-header">
+          <div class="panel-title-group">
+            <h2 class="panel-title">🗺️ Arterial Corridor & Junction Map</h2>
+            <span class="panel-subtext">Live Signal Status & Inbound Approach Queues</span>
+          </div>
+          <div class="map-legend">
+            <span class="legend-item"><span class="dot green"></span> Preempted Green</span>
+            <span class="legend-item"><span class="dot yellow"></span> Adaptive Green</span>
+            <span class="legend-item"><span class="dot red"></span> Cross Red</span>
+            <span class="legend-item"><span class="line-sample"></span> Active Corridor</span>
+          </div>
+        </div>
+
+        <div id="map" class="leaflet-map-canvas"></div>
+      </div>
+
+      <!-- Right: Active Emergencies -->
+      <div class="panel active-panel">
+        <div class="panel-header">
+          <div class="panel-title-group">
+            <h2 class="panel-title">🚨 Active Priority Corridors</h2>
+            <span id="activeCountLabel" class="panel-subtext">0 emergency vehicles in transit</span>
+          </div>
+          <button class="icon-refresh-btn" onclick="fetchActiveCorridors()" title="Refresh Active Corridors">🔄</button>
+        </div>
+
+        <div id="activeCorridorsList" class="active-corridors-container">
+          <!-- Dynamic cards injected by JS -->
+          <div class="empty-state">
+            <span class="empty-icon">✅</span>
+            <p><strong>All Junctions Clear</strong></p>
+            <p class="empty-sub">Signals operating in normal adaptive control.</p>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- Bottom: Emergency Audit Log Table -->
+    <section class="panel log-panel">
+      <div class="panel-header">
+        <div class="panel-title-group">
+          <h2 class="panel-title">📋 Emergency Dispatch & Verification Audit Trail</h2>
+          <span class="panel-subtext">Persistent SQLite Log of All Corridors, Private Alerts & Police Overrides</span>
+        </div>
+        <div class="table-actions">
+          <select id="statusFilter" class="filter-select" onchange="fetchEmergencyLogs()">
+            <option value="">All Statuses</option>
+            <option value="ACTIVE">Active Only</option>
+            <option value="CANCELLED">Cancelled</option>
+            <option value="POLICE_OVERRIDDEN">Police Overridden</option>
+            <option value="REJECTED">Rejected</option>
+          </select>
+          <button class="pill-action-btn" onclick="fetchEmergencyLogs()">Refresh Log</button>
+        </div>
+      </div>
+
+      <div class="table-container">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Request ID</th>
+              <th>Timestamp</th>
+              <th>Vehicle ID</th>
+              <th>Class</th>
+              <th>Destination</th>
+              <th>Reference / 112 ID</th>
+              <th>Status</th>
+              <th>Verification / Notes</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="logTableBody">
+            <tr>
+              <td colspan="9" class="loading-td">Loading audit logs...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" 
+          integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  
+  <script src="dashboard.js"></script>
+</body>
+</html>

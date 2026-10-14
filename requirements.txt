@@ -1,0 +1,12 @@
+# LifeLane – Zone Counter dependencies
+# Install with:  pip install -r requirements.txt
+
+ultralytics>=8.2.0       # YOLOv8 + ByteTrack built-in
+opencv-python>=4.8.0     # Video I/O and drawing
+numpy>=1.24.0            # Array math
+PyYAML>=6.0              # Config parsing
+fastapi>=0.100.0         # REST API for /counts
+uvicorn[standard]>=0.23.0  # ASGI server
+lap>=0.4.0               # Linear assignment (ByteTrack dependency)
+traci>=1.18.0            # SUMO TraCI client
+sumolib>=1.18.0          # SUMO python utilities

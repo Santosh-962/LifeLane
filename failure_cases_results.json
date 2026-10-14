@@ -1,0 +1,49 @@
+{
+  "case_1_backend_down": {
+    "scenario": "FastAPI Backend Down / Network Failure",
+    "expected_behavior": "TraCI controller flags FALLBACK_FIXED mode and defaults to safe 40s/3s/2s fixed timer without skipping all-red clearance",
+    "observed_status": "FALLBACK_FIXED_ENGAGED",
+    "safe_fixed_plan_reverted": true,
+    "test_passed": true,
+    "detail": "Connection error handled cleanly. Signal transitions respected 3s yellow and 2s all-red with zero crash or abrupt cut."
+  },
+  "case_2_camera_missing": {
+    "scenario": "Camera Perception Feed Disconnected / Stale Telemetry (>4s)",
+    "expected_behavior": "Vision bridge flags missing frame; controller switches to fixed plan and auto-resumes when camera feed recovers",
+    "observed_status": "DATA_STALE_TIMEOUT_DETECTED",
+    "safe_fixed_plan_reverted": true,
+    "test_passed": true,
+    "detail": "Vision bridge reported stale timestamp. Signal timings reverted to fixed plan, auto-resumed adaptive mode upon reconnection."
+  },
+  "case_3_fake_emergency_rejected": {
+    "scenario": "Unauthorized / Fake Emergency Preemption Request",
+    "expected_behavior": "Requests lacking 112 ID or unregistered fleet IDs must be REJECTED with security audit reason",
+    "test_passed": true,
+    "rejection_1": "Rejection: Private medical alert requires a verified 112 Reference ID or Hospital Name.",
+    "rejection_2": "Rejection: Official ambulance 'AMB-UNAUTHORIZED-404' not found in registered emergency vehicle registry.",
+    "signals_preempted": false,
+    "detail": "Both unauthorized attempts blocked before any signal modification occurred. Logged to emergency_log as REJECTED."
+  },
+  "case_4_dual_emergency_conflict": {
+    "scenario": "Dual Conflicting Emergency Vehicles (Ambulance South vs Fire Engine West at Junction C)",
+    "vehicle_a": {
+      "id": "AMB-108",
+      "approach": "South",
+      "phase": 0,
+      "eta": 15.0
+    },
+    "vehicle_b": {
+      "id": "FIRE-101",
+      "approach": "West",
+      "phase": 3,
+      "eta": 16.0
+    },
+    "first_served": "AMB-108",
+    "second_served": "FIRE-101",
+    "arbitration_rule": "Lowest ETA / Patient Priority with Mandatory Clearance",
+    "yellow_all_red_executed_between_phases": true,
+    "simultaneous_green_prevented": true,
+    "test_passed": true,
+    "detail": "Served AMB-108 first on Phase 0, executed 3s Yellow + 2s All-Red clearance, then served FIRE-101 on Phase 3, followed by 25s flush phase. Zero collision risk."
+  }
+}

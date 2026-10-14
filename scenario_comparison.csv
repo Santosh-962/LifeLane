@@ -1,0 +1,4 @@
+scenario,mode,sim_duration_sec,ambulance_injected,ambulance_trip_time_sec,ambulance_wait_time_sec,general_arrived_vehicles,avg_general_travel_time_sec
+Ambulance with Fixed Timers,fixed,400,True,65.0,40.0,232,38.45
+Ambulance with LifeLane,lifelane,400,True,18.0,0.0,294,28.12
+No Ambulance,fixed,400,False,,,242,36.80

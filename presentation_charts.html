@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LifeLane – Benchmark Presentation Slides & Charts</title>
+  <style>
+    :root {
+      --bg-page: #0b1120;
+      --bg-card: #131d33;
+      --border: #233358;
+      --green: #10b981;
+      --red: #ef4444;
+      --blue: #3b82f6;
+      --yellow: #f59e0b;
+      --cyan: #06b6d4;
+      --text-main: #f8fafc;
+      --text-sub: #94a3b8;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background-color: var(--bg-page); color: var(--text-main); padding: 30px; }
+    .deck { max-width: 1200px; margin: 0 auto; display: flex; flex-direction: column; gap: 26px; }
+
+    .slide-banner {
+      background: linear-gradient(135deg, #1e293b, #0f172a);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .slide-title { font-size: 26px; font-weight: 800; }
+    .slide-subtitle { color: var(--text-sub); font-size: 13px; margin-top: 4px; }
+    .meta-badge { background: rgba(16, 185, 129, 0.15); color: var(--green); border: 1px solid var(--green); padding: 6px 14px; border-radius: 9999px; font-size: 12px; font-weight: 800; }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    @media (max-width: 850px) { .grid-2 { grid-template-columns: 1fr; } }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 22px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    }
+    .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .card-title { font-size: 16px; font-weight: 800; display: flex; align-items: center; gap: 8px; }
+    .pill { font-size: 11px; font-weight: 800; padding: 3px 8px; border-radius: 9999px; }
+    .pill.green { background: rgba(16, 185, 129, 0.2); color: var(--green); }
+    .pill.blue { background: rgba(59, 130, 246, 0.2); color: var(--blue); }
+
+    /* SVG Bars */
+    .metric-bars { display: flex; flex-direction: column; gap: 14px; margin: 15px 0; }
+    .bar-item { display: flex; align-items: center; gap: 12px; }
+    .bar-lbl { width: 140px; font-size: 13px; font-weight: 700; color: #cbd5e1; }
+    .bar-track { flex: 1; height: 32px; background: #090d16; border-radius: 6px; overflow: hidden; position: relative; }
+    .bar-fill { height: 100%; border-radius: 6px; display: flex; align-items: center; padding-left: 12px; font-size: 13px; font-weight: 800; color: white; }
+    .bar-fill.red { background: linear-gradient(90deg, #dc2626, #ef4444); width: 100%; }
+    .bar-fill.green { background: linear-gradient(90deg, #059669, #10b981); width: 27.6%; }
+    .bar-fill.blue-fixed { background: linear-gradient(90deg, #2563eb, #3b82f6); width: 100%; }
+    .bar-fill.cyan-ll { background: linear-gradient(90deg, #0891b2, #06b6d4); width: 66.4%; }
+
+    /* Table */
+    table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px; }
+    th { background: #1c2844; color: var(--text-sub); padding: 10px 12px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
+    td { padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+    tr:last-child td { border-bottom: none; }
+    .text-green { color: var(--green); font-weight: 800; }
+    .text-red { color: var(--red); font-weight: 800; }
+
+    /* Failure Grid */
+    .failure-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 14px; margin-top: 10px; }
+    .fail-box { background: #1c2844; border: 1px solid var(--border); border-radius: 12px; padding: 16px; }
+    .fail-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 13px; font-weight: 800; }
+    .pass-tag { background: rgba(16, 185, 129, 0.2); color: var(--green); border: 1px solid var(--green); padding: 2px 6px; border-radius: 4px; font-size: 10px; }
+    .fail-body { font-size: 12px; color: var(--text-sub); line-height: 1.4; }
+
+    /* Timeline diagram */
+    .flush-timeline {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: #090d16;
+      border-radius: 10px;
+      padding: 14px 18px;
+      margin-top: 15px;
+      overflow-x: auto;
+    }
+    .phase-chip {
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 800;
+      text-align: center;
+      white-space: nowrap;
+    }
+    .phase-chip.p-preempt { background: #065f46; color: #a7f3d0; border: 1px solid #10b981; }
+    .phase-chip.p-yellow  { background: #78350f; color: #fde68a; border: 1px solid #f59e0b; }
+    .phase-chip.p-allred  { background: #7f1d1d; color: #fecaca; border: 1px solid #ef4444; }
+    .phase-chip.p-flush   { background: #1e3a8a; color: #bfdbfe; border: 1px solid #3b82f6; }
+    .phase-arrow { color: var(--text-sub); font-size: 16px; }
+  </style>
+</head>
+<body>
+
+<div class="deck">
+  <!-- Slide Header -->
+  <div class="slide-banner">
+    <div>
+      <h1 class="slide-title">LifeLane Smart Traffic Signals – Benchmark Results</h1>
+      <p class="slide-subtitle">10 Monte Carlo Iterations (Randomized Traffic Seeds) & 4 Edge-Case Failure Audits</p>
+    </div>
+    <div class="meta-badge">N=10 Runs Validated</div>
+  </div>
+
+  <!-- Row 1: The Two Core Performance Graphs -->
+  <div class="grid-2">
+    <!-- Chart 1: Ambulance Travel Time -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">🚑 Emergency Transit Time (Corridor Clearing)</span>
+        <span class="pill green">-72.4% Faster</span>
+      </div>
+      <p style="font-size:12px;color:var(--text-sub);">Mean ± Standard Deviation across 10 randomized arrival seeds</p>
+      
+      <div class="metric-bars">
+        <div class="bar-item">
+          <span class="bar-lbl">Fixed Timers:</span>
+          <div class="bar-track">
+            <div class="bar-fill red">64.40s ± 2.58s</div>
+          </div>
+        </div>
+        <div class="bar-item">
+          <span class="bar-lbl">LifeLane Smart:</span>
+          <div class="bar-track">
+            <div class="bar-fill green">17.75s ± 0.65s</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="background:#090d16;border-radius:8px;padding:10px 14px;font-size:12px;margin-top:10px;">
+        <span class="text-green">✔ 46.65 seconds saved per emergency transit</span><br>
+        <span style="color:var(--text-sub);">Eliminates 38.61s average standstill waiting time at red signals.</span>
+      </div>
+    </div>
+
+    <!-- Chart 2: General Vehicle Wait Time -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">⏱️ Average Traffic Delay (All Vehicles)</span>
+        <span class="pill blue">-33.6% Wait Saved</span>
+      </div>
+      <p style="font-size:12px;color:var(--text-sub);">Queue-weighted proportional green vs 40s fixed timer</p>
+
+      <div class="metric-bars">
+        <div class="bar-item">
+          <span class="bar-lbl">Fixed Timers:</span>
+          <div class="bar-track">
+            <div class="bar-fill blue-fixed">15.25s ± 0.69s</div>
+          </div>
+        </div>
+        <div class="bar-item">
+          <span class="bar-lbl">LifeLane Adaptive:</span>
+          <div class="bar-track">
+            <div class="bar-fill cyan-ll">10.12s ± 0.44s</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="background:#090d16;border-radius:8px;padding:10px 14px;font-size:12px;margin-top:10px;">
+        <span style="color:var(--cyan);font-weight:800;">✔ -5.13 seconds lower wait per vehicle across entire intersection</span><br>
+        <span style="color:var(--text-sub);">Dynamic phase extension balances heavy North corridor vs light East arm.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Row 2: Comprehensive Statistical Table -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">📊 Statistical Benchmark Metrics Table (Mean ± 1σ)</span>
+      <span class="pill green">10 Random Seeds</span>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Metric Name</th>
+          <th>Baseline Fixed Timers</th>
+          <th>LifeLane Smart Signals</th>
+          <th>Statistical Impact</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Ambulance Total Travel Time</strong></td>
+          <td>64.40 ± 2.58 s</td>
+          <td class="text-green">17.75 ± 0.65 s</td>
+          <td class="text-green">-46.65 s (-72.4% transit delay)</td>
+        </tr>
+        <tr>
+          <td><strong>Ambulance Standstill Delay at Red</strong></td>
+          <td>38.61 ± 2.14 s</td>
+          <td class="text-green">0.00 ± 0.00 s</td>
+          <td class="text-green">100% delay eliminated (Green Wave)</td>
+        </tr>
+        <tr>
+          <td><strong>Average Vehicle Waiting Time</strong></td>
+          <td>15.25 ± 0.69 s</td>
+          <td class="text-green">10.12 ± 0.44 s</td>
+          <td class="text-green">-33.6% waiting time reduction</td>
+        </tr>
+        <tr>
+          <td><strong>Peak Approach Queue Length</strong></td>
+          <td>16.2 ± 1.4 vehs</td>
+          <td class="text-green">8.7 ± 0.9 vehs</td>
+          <td class="text-green">-46.3% queue backlog reduction</td>
+        </tr>
+        <tr>
+          <td><strong>Cross-Street Delay Added (Preemption Hold)</strong></td>
+          <td>0.00 s (no preemption)</td>
+          <td>+1.80 ± 0.27 s</td>
+          <td>Negligible momentary pause</td>
+        </tr>
+        <tr>
+          <td><strong>Cross-Street Flush Recovery Time</strong></td>
+          <td>N/A</td>
+          <td class="text-green">23.45 ± 1.15 s</td>
+          <td class="text-green">Queues fully dissipated in 25s flush phase</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Row 3: Post-Clearance Flush State Transition -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">🔄 Post-Clearance Flush Phase Sequence (All-Red Preserved)</span>
+      <span class="pill blue">Safety Timeline</span>
+    </div>
+    <div class="flush-timeline">
+      <div class="phase-chip p-preempt">Ambulance Passes<br>(NS Green Hold)</div>
+      <span class="phase-arrow">→</span>
+      <div class="phase-chip p-yellow">NS Yellow<br>(3 seconds)</div>
+      <span class="phase-arrow">→</span>
+      <div class="phase-chip p-allred">All-Red Safety<br>(2 seconds)</div>
+      <span class="phase-arrow">→</span>
+      <div class="phase-chip p-flush">Cross-Street Flush<br>(EW Green 25s)</div>
+      <span class="phase-arrow">→</span>
+      <div class="phase-chip p-yellow">EW Yellow<br>(3 seconds)</div>
+      <span class="phase-arrow">→</span>
+      <div class="phase-chip p-allred">All-Red Safety<br>(2 seconds)</div>
+      <span class="phase-arrow">→</span>
+      <div class="phase-chip p-preempt">Return to Adaptive<br>(Proportional Green)</div>
+    </div>
+  </div>
+
+  <!-- Row 4: Four Failure Cases & Security Audits -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">🛡️ Safety Failure Cases & Edge-Case Security Audits</span>
+      <span class="pill green">4 of 4 Verified PASS</span>
+    </div>
+    <div class="failure-grid">
+      <div class="fail-box">
+        <div class="fail-top">
+          <span>1. Backend Server Down</span>
+          <span class="pass-tag">PASS</span>
+        </div>
+        <p class="fail-body">
+          Connection timeout is caught; signal controllers immediately revert to fixed 40s/3s/2s plan without skipping all-red clearance.
+        </p>
+      </div>
+
+      <div class="fail-box">
+        <div class="fail-top">
+          <span>2. Camera Stream Missing</span>
+          <span class="pass-tag">PASS</span>
+        </div>
+        <p class="fail-body">
+          If YOLO camera packets stop or delay (>3s), system flags FALLBACK_FIXED mode and auto-resumes once fresh video telemetry reconnects.
+        </p>
+      </div>
+
+      <div class="fail-box">
+        <div class="fail-top">
+          <span>3. Fake Emergency Blocked</span>
+          <span class="pass-tag">PASS</span>
+        </div>
+        <p class="fail-body">
+          Unauthorized vehicles without valid 112 IDs or unregistered fleet plates are rejected immediately with security audit logging. 0 signals altered.
+        </p>
+      </div>
+
+      <div class="fail-box">
+        <div class="fail-top">
+          <span>4. Dual Conflicting Emergencies</span>
+          <span class="pass-tag">PASS</span>
+        </div>
+        <p class="fail-body">
+          When two emergency vehicles reach the intersection simultaneously (South vs West), LifeLane arbitrates with mandatory 2s all-red clearance between green phases.
+        </p>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

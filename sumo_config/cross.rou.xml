@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- LifeLane – Routes and Traffic Demand
+     Mixed traffic: Car, Motorcycle, Bus
+     Demand profile:
+       - North approach: HEAVY (~1000 veh/h)
+       - South approach: MODERATE (~430 veh/h)
+       - West approach:  MODERATE (~430 veh/h)
+       - East approach:  LIGHT (~125 veh/h)
+-->
+<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <!-- ==================== Vehicle Types ==================== -->
+    <!-- Standard passenger car -->
+    <vType id="car" vClass="passenger" length="4.5" width="1.8" maxSpeed="13.89"
+           accel="2.6" decel="4.5" sigma="0.5" color="1.0,0.8,0.2"/>
+
+    <!-- Two-wheeler / Motorcycle (faster acceleration, smaller footprint) -->
+    <vType id="motorcycle" vClass="motorcycle" length="2.2" width="0.9" maxSpeed="15.0"
+           accel="3.5" decel="5.0" sigma="0.5" color="0.2,0.8,0.3"/>
+
+    <!-- Public transit bus (longer, slower acceleration) -->
+    <vType id="bus" vClass="bus" length="12.0" width="2.5" maxSpeed="11.11"
+           accel="1.2" decel="3.0" sigma="0.3" color="0.2,0.4,1.0"/>
+
+    <!-- Emergency response vehicle (Ambulance with blue light & high speed) -->
+    <vType id="ambulance" vClass="emergency" guiShape="emergency" length="6.5" width="2.1"
+           maxSpeed="22.22" accel="3.8" decel="5.5" sigma="0.2" color="1.0,0.1,0.1"
+           speedFactor="1.3" impatience="1.0">
+        <param key="has.bluelight.device" value="true"/>
+    </vType>
+
+    <!-- ==================== Routes ==================== -->
+    <!-- North Inbound -->
+    <route id="r_N_S" edges="N2C C2S"/>
+    <route id="r_N_W" edges="N2C C2W"/>
+    <route id="r_N_E" edges="N2C C2E"/>
+
+    <!-- South Inbound -->
+    <route id="r_S_N" edges="S2C C2N"/>
+    <route id="r_S_E" edges="S2C C2E"/>
+    <route id="r_S_W" edges="S2C C2W"/>
+
+    <!-- West Inbound -->
+    <route id="r_W_E" edges="W2C C2E"/>
+    <route id="r_W_S" edges="W2C C2S"/>
+    <route id="r_W_N" edges="W2C C2N"/>
+
+    <!-- East Inbound -->
+    <route id="r_E_W" edges="E2C C2W"/>
+    <route id="r_E_N" edges="E2C C2N"/>
+    <route id="r_E_S" edges="E2C C2S"/>
+
+    <!-- ==================== Flows (Duration 3600s) ==================== -->
+    <!-- NORTH: HEAVY DEMAND (~1020 veh/h) -->
+    <flow id="f_N_S_car"   type="car"        route="r_N_S" begin="0" end="3600" vehsPerHour="500"/>
+    <flow id="f_N_S_moto"  type="motorcycle" route="r_N_S" begin="0" end="3600" vehsPerHour="250"/>
+    <flow id="f_N_S_bus"   type="bus"        route="r_N_S" begin="0" end="3600" vehsPerHour="40"/>
+    <flow id="f_N_W_car"   type="car"        route="r_N_W" begin="0" end="3600" vehsPerHour="100"/>
+    <flow id="f_N_W_moto"  type="motorcycle" route="r_N_W" begin="0" end="3600" vehsPerHour="50"/>
+    <flow id="f_N_E_car"   type="car"        route="r_N_E" begin="0" end="3600" vehsPerHour="80"/>
+
+    <!-- SOUTH: MODERATE DEMAND (~430 veh/h) -->
+    <flow id="f_S_N_car"   type="car"        route="r_S_N" begin="0" end="3600" vehsPerHour="220"/>
+    <flow id="f_S_N_moto"  type="motorcycle" route="r_S_N" begin="0" end="3600" vehsPerHour="100"/>
+    <flow id="f_S_N_bus"   type="bus"        route="r_S_N" begin="0" end="3600" vehsPerHour="20"/>
+    <flow id="f_S_E_car"   type="car"        route="r_S_E" begin="0" end="3600" vehsPerHour="50"/>
+    <flow id="f_S_W_car"   type="car"        route="r_S_W" begin="0" end="3600" vehsPerHour="40"/>
+
+    <!-- WEST: MODERATE DEMAND (~430 veh/h) -->
+    <flow id="f_W_E_car"   type="car"        route="r_W_E" begin="0" end="3600" vehsPerHour="220"/>
+    <flow id="f_W_E_moto"  type="motorcycle" route="r_W_E" begin="0" end="3600" vehsPerHour="100"/>
+    <flow id="f_W_E_bus"   type="bus"        route="r_W_E" begin="0" end="3600" vehsPerHour="20"/>
+    <flow id="f_W_S_car"   type="car"        route="r_W_S" begin="0" end="3600" vehsPerHour="50"/>
+    <flow id="f_W_N_car"   type="car"        route="r_W_N" begin="0" end="3600" vehsPerHour="40"/>
+
+    <!-- EAST: LIGHT DEMAND (~125 veh/h) -->
+    <flow id="f_E_W_car"   type="car"        route="r_E_W" begin="0" end="3600" vehsPerHour="60"/>
+    <flow id="f_E_W_moto"  type="motorcycle" route="r_E_W" begin="0" end="3600" vehsPerHour="35"/>
+    <flow id="f_E_W_bus"   type="bus"        route="r_E_W" begin="0" end="3600" vehsPerHour="5"/>
+    <flow id="f_E_N_car"   type="car"        route="r_E_N" begin="0" end="3600" vehsPerHour="15"/>
+    <flow id="f_E_S_car"   type="car"        route="r_E_S" begin="0" end="3600" vehsPerHour="10"/>
+</routes>
